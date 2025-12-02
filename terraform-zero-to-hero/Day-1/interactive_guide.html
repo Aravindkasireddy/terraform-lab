@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 1: Infrastructure as Code Fundamentals - Terraform Learning</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7C3AED;
+            --secondary: #06B6D4;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg-dark: #0F172A;
+            --bg-darker: #020617;
+            --bg-card: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Animated background */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(124, 58, 237, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 58, 237, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 15s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -250px;
+            left: -250px;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--secondary);
+            bottom: -200px;
+            right: -200px;
+            animation-delay: 7s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(100px, 100px) scale(1.2);
+            }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(124, 58, 237, 0.1) 0%, transparent 100%);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--secondary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-5px);
+            color: var(--primary);
+        }
+
+        .day-badge {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50px;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Section */
+        .section {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            transition: all 0.3s;
+        }
+
+        .section:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.2);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Comparison Grid */
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-card {
+            padding: 2rem;
+            border-radius: 16px;
+            border: 2px solid;
+        }
+
+        .comparison-card.before {
+            background: rgba(239, 68, 68, 0.05);
+            border-color: var(--danger);
+        }
+
+        .comparison-card.after {
+            background: rgba(16, 185, 129, 0.05);
+            border-color: var(--success);
+        }
+
+        .comparison-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comparison-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .comparison-card li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .comparison-card.before li::before {
+            content: '✗';
+            position: absolute;
+            left: 0;
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .comparison-card.after li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .feature-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            line-height: 40px;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            color: var(--accent);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Code Block */
+        .code-container {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+
+        .code-header {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            opacity: 0.7;
+        }
+
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--success);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(6, 182, 212, 0.1);
+            border-color: var(--secondary);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent);
+        }
+
+        .alert-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(124, 58, 237, 0.2);
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .section {
+                padding: 2rem;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <header>
+        <a href="../index.html" class="back-link">← Back to All Days</a>
+        <div class="day-badge">DAY 1</div>
+        <h1>🏗️ Infrastructure as Code Fundamentals</h1>
+        <p class="subtitle">
+            Discover why manual infrastructure management is outdated and how Terraform revolutionizes cloud
+            provisioning
+        </p>
+    </header>
+
+    <div class="container">
+        <!-- What is IaC -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">📚</span>
+                What is Infrastructure as Code (IaC)?
+            </h2>
+
+            <p style="font-size: 1.1rem; margin-bottom: 2rem; color: var(--text-secondary);">
+                Infrastructure as Code is a modern approach to managing and provisioning computing infrastructure
+                through machine-readable definition files, rather than physical hardware configuration or interactive
+                configuration tools.
+            </p>
+
+            <div class="comparison">
+                <div class="comparison-card before">
+                    <h3>❌ Before IaC</h3>
+                    <ul>
+                        <li>Manual server configuration</li>
+                        <li>Inconsistent environments</li>
+                        <li>No version control</li>
+                        <li>Heavy documentation burden</li>
+                        <li>Limited automation</li>
+                        <li>Slow provisioning times</li>
+                        <li>Error-prone processes</li>
+                    </ul>
+                </div>
+
+                <div class="comparison-card after">
+                    <h3>✅ With IaC</h3>
+                    <ul>
+                        <li>Automated infrastructure setup</li>
+                        <li>Consistent across environments</li>
+                        <li>Version-controlled configurations</li>
+                        <li>Self-documenting code</li>
+                        <li>Robust automation</li>
+                        <li>Rapid provisioning</li>
+                        <li>Reduced human error</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Terraform -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">🚀</span>
+                Why Choose Terraform?
+            </h2>
+
+            <p style="font-size: 1.1rem; margin-bottom: 2rem; color: var(--text-secondary);">
+                Terraform stands out among IaC tools for its versatility, community support, and powerful features.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-number">1</div>
+                    <h3>Multi-Cloud Support</h3>
+                    <p>Deploy to AWS, Azure, GCP, and more with the same configuration language. True cloud-agnostic
+                        infrastructure management.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">2</div>
+                    <h3>Large Ecosystem</h3>
+                    <p>Thousands of providers and modules from HashiCorp and the community. Find pre-built solutions for
+                        almost any service.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">3</div>
+                    <h3>Declarative Syntax</h3>
+                    <p>Specify WHAT you want, not HOW to do it. Terraform figures out the execution plan automatically.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">4</div>
+                    <h3>State Management</h3>
+                    <p>Tracks current infrastructure state to make informed decisions about changes and detect drift
+                        from desired configuration.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">5</div>
+                    <h3>Plan & Apply Workflow</h3>
+                    <p>Preview changes before applying them. No surprises - see exactly what will be created, modified,
+                        or destroyed.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">6</div>
+                    <h3>Community Support</h3>
+                    <p>Massive active community with extensive documentation, tutorials, and troubleshooting resources
+                        available online.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">7</div>
+                    <h3>Integration Ready</h3>
+                    <p>Works seamlessly with Docker, Kubernetes, Ansible, Jenkins, and other DevOps tools for complete
+                        automation pipelines.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-number">8</div>
+                    <h3>HCL Language</h3>
+                    <p>HashiCorp Configuration Language is human-readable, expressive, and designed specifically for
+                        infrastructure definition.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">⚡</span>
+                Getting Started
+            </h2>
+
+            <div class="alert alert-info">
+                <div class="alert-title">💡 Your First Terraform Commands</div>
+                <p>These three commands are the foundation of every Terraform workflow:</p>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; font-size: 1.5rem;">1. Initialize Your Project</h3>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code>terraform init
+
+# Downloads provider plugins
+# Sets up backend configuration
+# Prepares working directory</code></pre>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; font-size: 1.5rem;">2. Preview Changes</h3>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code>terraform plan
+
+# Shows what will be created, changed, or destroyed
+# No actual changes are made
+# Safe to run anytime</code></pre>
+            </div>
+
+            <h3 style="margin: 2rem 0 1rem; font-size: 1.5rem;">3. Apply Changes</h3>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code>terraform apply
+
+# Executes the planned changes
+# Prompts for confirmation
+# Creates/modifies/destroys infrastructure</code></pre>
+            </div>
+        </div>
+
+        <!-- Hands-On Project -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">🎯</span>
+                Hands-On Project: Create Your First EC2 Instance
+            </h2>
+
+            <p style="font-size: 1.1rem; margin-bottom: 2rem; color: var(--text-secondary);">
+                Let's put theory into practice! Navigate to the PROJECT-ec2-instance-creation folder to create your
+                first AWS resource with Terraform.
+            </p>
+
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code># Navigate to the project folder
+cd Day-1/PROJECT-ec2-instance-creation
+
+# View the project files
+ls
+
+# Follow the steps.md guide to:
+# 1. Review the main.tf configuration
+# 2. Initialize Terraform
+# 3. Plan your infrastructure
+# 4. Create your first EC2 instance!</code></pre>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-title">⚠️ AWS Costs</div>
+                <p>Remember to destroy resources after testing to avoid charges! Use <code
+                        style="color: var(--accent);">terraform destroy</code></p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🎓 Day 1 Complete! Ready for Day 2: Providers, Variables & Functions</p>
+        <p style="margin-top: 1rem;"><a href="../index.html" style="color: var(--secondary); text-decoration: none;">←
+                Back to Learning Hub</a></p>
+    </footer>
+</body>
+
+</html>

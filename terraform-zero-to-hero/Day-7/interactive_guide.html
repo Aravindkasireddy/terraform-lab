@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 7: Security & Secrets Management - Terraform Learning</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');*{margin:0;padding:0;box-sizing:border-box}:root{--primary:#7C3AED;--secondary:#06B6D4;--accent:#F59E0B;--success:#10B981;--danger:#EF4444;--bg-dark:#0F172A;--bg-darker:#020617;--bg-card:#1E293B;--text-primary:#F1F5F9;--text-secondary:#94A3B8}body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,var(--bg-darker) 0%,var(--bg-dark) 100%);color:var(--text-primary);min-height:100vh;line-height:1.6}.grid-background{position:fixed;top:0;left:0;width:100%;height:100%;background-image:linear-gradient(rgba(124,58,237,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,0.1) 1px,transparent 1px);background-size:50px 50px;animation:gridMove 20s linear infinite;pointer-events:none;z-index:0}@keyframes gridMove{0%{transform:translate(0,0)}100%{transform:translate(50px,50px)}}.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.25;pointer-events:none;z-index:0;animation:orbFloat 15s ease-in-out infinite}.orb-1{width:500px;height:500px;background:var(--primary);top:-250px;left:-250px}.orb-2{width:400px;height:400px;background:var(--secondary);bottom:-200px;right:-200px;animation-delay:7s}@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(100px,100px) scale(1.2)}}header{position:relative;z-index:10;padding:3rem 2rem 2rem;text-align:center;background:linear-gradient(180deg,rgba(124,58,237,0.1) 0%,transparent 100%)}.back-link{display:inline-block;color:var(--secondary);text-decoration:none;margin-bottom:2rem;font-weight:600;transition:all 0.3s}.back-link:hover{transform:translateX(-5px);color:var(--primary)}.day-badge{display:inline-block;padding:0.75rem 2rem;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:50px;font-weight:700;margin-bottom:1.5rem;box-shadow:0 10px 30px rgba(124,58,237,0.3)}h1{font-size:3.5rem;font-weight:900;background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem}.subtitle{font-size:1.3rem;color:var(--text-secondary);max-width:800px;margin:0 auto}.container{position:relative;z-index:10;max-width:1200px;margin:0 auto;padding:3rem 2rem}.section{background:var(--bg-card);padding:3rem;border-radius:20px;margin-bottom:2rem;border:1px solid rgba(124,58,237,0.2);transition:all 0.3s}.section:hover{border-color:var(--secondary);box-shadow:0 10px 40px rgba(124,58,237,0.2)}.section-title{font-size:2rem;font-weight:700;margin-bottom:1.5rem;color:var(--secondary);display:flex;align-items:center;gap:1rem}.section-icon{font-size:2.5rem}.code-container{background:#000;border-radius:12px;overflow:hidden;margin:1.5rem 0;border:1px solid rgba(124,58,237,0.3)}.code-header{background:linear-gradient(90deg,var(--primary),var(--secondary));padding:0.75rem 1.5rem;display:flex;align-items:center;gap:0.5rem}.code-dot{width:12px;height:12px;border-radius:50%;background:#fff;opacity:0.7}pre{padding:1.5rem;overflow-x:auto;margin:0}code{font-family:'Courier New',monospace;font-size:0.95rem;line-height:1.6;color:var(--success)}.alert{padding:1.5rem;border-radius:12px;margin:2rem 0;border-left:4px solid}.alert-danger{background:rgba(239,68,68,0.1);border-color:var(--danger)}.alert-success{background:rgba(16,185,129,0.1);border-color:var(--success)}.alert-title{font-weight:700;margin-bottom:0.5rem;font-size:1.1rem}footer{position:relative;z-index:10;text-align:center;padding:2rem;color:var(--text-secondary);border-top:1px solid rgba(124,58,237,0.2);margin-top:4rem}@media (max-width:768px){h1{font-size:2.5rem}.section{padding:2rem}}
+    </style>
+</head>
+<body>
+    <div class="grid-background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    
+    <header>
+        <a href="../index.html" class="back-link">← Back to All Days</a>
+        <div class="day-badge">DAY 7</div>
+        <h1>🔐 Security & Secrets Management</h1>
+        <p class="subtitle">Secure your infrastructure with HashiCorp Vault and best practices</p>
+    </header>
+    
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">⚠️</span>The Problem with Hardcoded Secrets</h2>
+            <div class="alert alert-danger">
+                <div class="alert-title">❌ Never Do This!</div>
+                <div class="code-container" style="margin-top:1rem">
+                    <div class="code-header"></div>
+                    <pre><code>resource "aws_db_instance" "example" {
+  password = "MyPassword123"  # DANGER! In Git forever
+}
+
+variable "api_key" {
+  default = "sk-1234567890"   # NEVER hardcode secrets!
+}</code></pre>
+                </div>
+            </div>
+            <p style="margin-top:1rem;color:var(--text-secondary)">Secrets hardcoded in .tf files end up in version control, exposing sensitive data to anyone with repository access.</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">🔒</span>HashiCorp Vault Integration</h2>
+            <p style="font-size:1.1rem;margin-bottom:2rem;color:var(--text-secondary)">Vault provides centralized secret management with encryption, access control, and audit logging.</p>
+            <div class="code-container">
+                <div class="code-header"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+                <pre><code>provider "vault" {
+  address = "http://vault-server:8200"
+  
+  auth_login {
+    path = "auth/approle/login"
+    parameters = {
+      role_id   = var.role_id
+      secret_id = var.secret_id
+    }
+  }
+}
+
+data "vault_kv_secret_v2" "db_creds" {
+  mount = "secret"
+  name  = "database-credentials"
+}
+
+resource "aws_db_instance" "example" {
+  password = data.vault_kv_secret_v2.db_creds.data["password"]
+}</code></pre>
+            </div>
+            <div class="alert alert-success">
+                <div class="alert-title">✅ Security Benefits</div>
+                <p>Encrypted storage • Access control • Audit logs • Secret rotation • No secrets in Git • Centralized management</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">🛡️</span>Security Methods</h2>
+            <div style="font-size:1.05rem;color:var(--text-secondary);line-height:1.8">
+                <p><strong>1. Sensitive Attribute:</strong> Mark variables as sensitive to hide from console output</p>
+                <p><strong>2. HashiCorp Vault:</strong> Centralized secret management with AppRole authentication</p>
+                <p><strong>3. AWS Secrets Manager:</strong> Native AWS solution for secret storage</p>
+                <p><strong>4. Environment Variables:</strong> Store secrets outside of code (TF_VAR_* pattern)</p>
+                <p><strong>5. Remote State Encryption:</strong> Encrypt state files in S3 with KMS</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">🎯</span>Hands-On Project</h2>
+            <div class="code-container">
+                <div class="code-header"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+                <pre><code>cd Day-7
+# Review Vault integration examples
+# Set up AppRole authentication
+# Deploy EC2 with secrets from Vault</code></pre>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>🎓 Day 7 Complete! Next: Day 8 - Migration & Drift Detection</p>
+        <p style="margin-top:1rem"><a href="../index.html" style="color:var(--secondary);text-decoration:none">← Back to Learning Hub</a></p>
+    </footer>
+</body>
+</html>

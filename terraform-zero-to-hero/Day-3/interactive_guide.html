@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 3: Terraform Modules - Terraform Learning</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --primary: #7C3AED;
+            --secondary: #06B6D4;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg-dark: #0F172A;
+            --bg-darker: #020617;
+            --bg-card: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6
+        }
+
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(124, 58, 237, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 58, 237, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0)
+            }
+
+            100% {
+                transform: translate(50px, 50px)
+            }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 15s ease-in-out infinite
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -250px;
+            left: -250px
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--secondary);
+            bottom: -200px;
+            right: -200px;
+            animation-delay: 7s
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1)
+            }
+
+            50% {
+                transform: translate(100px, 100px) scale(1.2)
+            }
+        }
+
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(124, 58, 237, 0.1) 0%, transparent 100%)
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--secondary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            transition: all 0.3s
+        }
+
+        .back-link:hover {
+            transform: translateX(-5px);
+            color: var(--primary)
+        }
+
+        .day-badge {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50px;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3)
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem
+        }
+
+        .section {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            transition: all 0.3s
+        }
+
+        .section:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.2)
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 1rem
+        }
+
+        .section-icon {
+            font-size: 2.5rem
+        }
+
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0
+        }
+
+        .benefit-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            transition: all 0.3s
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3)
+        }
+
+        .benefit-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            line-height: 40px;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 1rem
+        }
+
+        .benefit-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            color: var(--accent)
+        }
+
+        .benefit-card p {
+            color: var(--text-secondary);
+            line-height: 1.8
+        }
+
+        .code-container {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(124, 58, 237, 0.3)
+        }
+
+        .code-header {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            opacity: 0.7
+        }
+
+        pre {
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 0
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--success)
+        }
+
+        .alert {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid
+        }
+
+        .alert-info {
+            background: rgba(6, 182, 212, 0.1);
+            border-color: var(--secondary)
+        }
+
+        .alert-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem
+        }
+
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(124, 58, 237, 0.2);
+            margin-top: 4rem
+        }
+
+        @media (max-width:768px) {
+            h1 {
+                font-size: 2.5rem
+            }
+
+            .section {
+                padding: 2rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <header>
+        <a href="../index.html" class="back-link">← Back to All Days</a>
+        <div class="day-badge">DAY 3</div>
+        <h1>📦 Terraform Modules</h1>
+        <p class="subtitle">Build reusable, maintainable infrastructure with modular design patterns</p>
+    </header>
+
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">✨</span>Why Use Modules?</h2>
+            <div class="benefit-grid">
+                <div class="benefit-card">
+                    <div class="benefit-number">1</div>
+                    <h3>Modularity</h3>
+                    <p>Break infrastructure into smaller, self-contained components that are easier to manage and
+                        understand</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">2</div>
+                    <h3>Reusability</h3>
+                    <p>Create templates for common components and reuse them across projects without duplication</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">3</div>
+                    <h3>Collaboration</h3>
+                    <p>Different teams can work on separate modules independently and combine them later</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">4</div>
+                    <h3>Versioning</h3>
+                    <p>Modules can have their own versions, allowing controlled updates and compatibility testing</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">5</div>
+                    <h3>Abstraction</h3>
+                    <p>Hide complexity behind simple interfaces, so users focus on high-level parameters</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">6</div>
+                    <h3>Testing</h3>
+                    <p>Modules can be individually tested and validated before being used in production</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">7</div>
+                    <h3>Documentation</h3>
+                    <p>Variables and outputs within modules serve as self-documentation for usage</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">8</div>
+                    <h3>Scalability</h3>
+                    <p>As infrastructure grows, modules provide a clean way to manage increasing complexity</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-number">9</div>
+                    <h3>Security</h3>
+                    <p>Encapsulate security best practices and ensure consistent compliance across deployments</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">🏗️</span>Module Structure</h2>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code># Module definition
+module "ec2_instance" {
+  source = "./modules/ec2_instance"
+  
+  ami           = var.ami
+  instance_type = var.instance_type
+  tags          = var.tags
+}
+
+# Module output usage
+output "instance_id" {
+  value = module.ec2_instance.id
+}</code></pre>
+            </div>
+            <div class="alert alert-info">
+                <div class="alert-title">💡 Module Sources</div>
+                <p>Modules can be sourced from: Local paths • Terraform Registry • GitHub • S3 • HTTP URLs</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title"><span class="section-icon">🎯</span>Hands-On Project</h2>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code>cd Day-3/modules/ec2_instance
+# Explore reusable EC2 module structure
+terraform init
+terraform plan</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🎓 Day 3 Complete! Next: Day 4 - State Management & Remote Backends</p>
+        <p style="margin-top:1rem"><a href="../index.html" style="color:var(--secondary);text-decoration:none">← Back to
+                Learning Hub</a></p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terraform Zero to Hero - Interactive Learning Hub</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7C3AED;
+            --secondary: #06B6D4;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg-dark: #0F172A;
+            --bg-darker: #020617;
+            --bg-card: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background grid */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(124, 58, 237, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 58, 237, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 15s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            top: 50%;
+            right: -150px;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
+            width: 350px;
+            height: 350px;
+            background: var(--accent);
+            bottom: -175px;
+            left: 30%;
+            animation-delay: 10s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(50px, 50px) scale(1.1);
+            }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        .progress-bar {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border-radius: 50px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        .progress-fill {
+            height: 30px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: width 1s ease;
+            animation: progressGrow 1.5s ease-out 0.8s both;
+        }
+
+        @keyframes progressGrow {
+            from {
+                width: 0%;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Day Cards Grid */
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .day-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(124, 58, 237, 0.05) 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            animation: cardFadeIn 0.6s ease-out both;
+        }
+
+        .day-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .day-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .day-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .day-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .day-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .day-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        .day-card:nth-child(7) {
+            animation-delay: 0.7s;
+        }
+
+        .day-card:nth-child(8) {
+            animation-delay: 0.8s;
+        }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .day-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .day-card:hover::before {
+            left: 100%;
+        }
+
+        .day-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--secondary);
+            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.4);
+        }
+
+        .day-number {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            line-height: 60px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        .day-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--secondary);
+        }
+
+        .day-topics {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .day-topics li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .day-topics li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .day-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.5));
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: 20px;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            animation: modalSlideIn 0.4s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .close:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .modal-header {
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-description {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .modal-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(124, 58, 237, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .modal-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .modal-section ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .modal-section li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .modal-section li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .code-block {
+            background: #000;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+
+        .code-block code {
+            color: var(--success);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Stats Section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid rgba (124, 58, 237, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(124, 58, 237, 0.2);
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="grid-background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <header>
+        <div class="logo">🚀</div>
+        <h1>Terraform Zero to Hero</h1>
+        <p class="subtitle">Your Complete Interactive Learning Journey</p>
+        <div class="progress-bar">
+            <div class="progress-fill">8 Days of Mastery</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Learning Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">25+</div>
+                <div class="stat-label">Key Topics</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Hands-On</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Cloud Power</div>
+            </div>
+        </div>
+
+        <!-- Day Cards -->
+        <div class="days-grid" id="daysGrid">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🎓 Built with love for Infrastructure as Code enthusiasts</p>
+        <p style="margin-top: 1rem;">Terraform • AWS • DevOps • Cloud Engineering</p>
+    </footer>
+
+    <script>
+        // Day data
+        const days = [
+            {
+                number: 1,
+                title: "Infrastructure as Code Fundamentals",
+                icon: "🏗️",
+                topics: [
+                    "What is IaC?",
+                    "Why Terraform?",
+                    "Multi-Cloud Support",
+                    "State Management Basics",
+                    "Getting Started with Terraform"
+                ],
+                description: "Begin your journey with Infrastructure as Code. Learn why manual infrastructure management is outdated and how Terraform revolutionizes cloud provisioning with its declarative approach.",
+                keyPoints: [
+                    "Manual infrastructure configuration challenges",
+                    "IaC benefits: Version control, automation, consistency",
+                    "Terraform's multi-cloud capabilities (AWS, Azure, GCP)",
+                    "Declarative vs Imperative syntax",
+                    "HashiCorp Configuration Language (HCL)"
+                ],
+                project: "Create your first EC2 instance"
+            },
+            {
+                number: 2,
+                title: "Providers, Variables & Functions",
+                icon: "⚙️",
+                topics: [
+                    "Terraform Providers",
+                    "Multiple Providers & Regions",
+                    "Variables & tfvars",
+                    "Conditional Expressions",
+                    "Built-in Functions"
+                ],
+                description: "Master Terraform's configuration system. Learn how to work with different cloud providers, manage variables effectively, and leverage powerful built-in functions.",
+                keyPoints: [
+                    "Provider configuration (AWS, Azure, Google)",
+                    "Managing multiple regions and accounts",
+                    "Variable types and validation",
+                    "Using .tfvars files for environment separation",
+                    "Conditional logic with count and for_each",
+                    "String, collection, and encoding functions"
+                ],
+                project: "VPC with EC2 instances across multiple regions"
+            },
+            {
+                number: 3,
+                title: "Terraform Modules",
+                icon: "📦",
+                topics: [
+                    "Module Basics",
+                    "Creating Reusable Modules",
+                    "Module Composition",
+                    "Module Sources",
+                    "Best Practices"
+                ],
+                description: "Build reusable, maintainable infrastructure with Terraform modules. Learn modularity, composition, and how to create your own module library.",
+                keyPoints: [
+                    "Benefits of modularity and reusability",
+                    "Creating self-contained modules",
+                    "Input variables and output values",
+                    "Module versioning and sources",
+                    "Testing and validating modules",
+                    "Public registry vs private modules"
+                ],
+                project: "EC2 instance module with configurable parameters"
+            },
+            {
+                number: 4,
+                title: "State Management & Remote Backends",
+                icon: "💾",
+                topics: [
+                    "Terraform State File",
+                    "Remote Backends (S3)",
+                    "State Locking (DynamoDB)",
+                    "State Security",
+                    "Collaboration"
+                ],
+                description: "Understand the critical concept of Terraform state. Learn to secure and manage state files with remote backends and enable safe team collaboration.",
+                keyPoints: [
+                    "What is the state file and why it matters",
+                    "Security risks of local state files",
+                    "Configuring S3 remote backend",
+                    "State locking with DynamoDB",
+                    "Preventing concurrent modifications",
+                    "State encryption and versioning"
+                ],
+                project: "Configure S3 backend with state locking"
+            },
+            {
+                number: 5,
+                title: "Data Sources & Dependencies",
+                icon: "🔗",
+                topics: [
+                    "Data Sources",
+                    "Querying Existing Resources",
+                    "Implicit Dependencies",
+                    "Explicit depends_on",
+                    "Resource Outputs"
+                ],
+                description: "Learn to reference existing infrastructure and manage resource dependencies. Master data sources to integrate Terraform with existing cloud resources.",
+                keyPoints: [
+                    "Reading data from existing AWS resources",
+                    "Using data sources vs creating resources",
+                    "Implicit dependency chains",
+                    "Explicit dependency management",
+                    "Cross-stack references",
+                    "Output values and remote state data sources"
+                ],
+                project: "Query existing VPC and create resources within it"
+            },
+            {
+                number: 6,
+                title: "Terraform Workspaces",
+                icon: "🔄",
+                topics: [
+                    "Workspace Basics",
+                    "Creating Workspaces",
+                    "Environment Separation",
+                    "Workspace State",
+                    "Dynamic Configuration"
+                ],
+                description: "Manage multiple environments (dev, staging, prod) with a single codebase using Terraform workspaces. Learn dynamic resource sizing based on environment.",
+                keyPoints: [
+                    "What are Terraform workspaces?",
+                    "Creating and switching workspaces",
+                    "Separate state files per workspace",
+                    "Environment-specific configurations",
+                    "Using lookup() for dynamic values",
+                    "Best practices for workspace usage"
+                ],
+                project: "Multi-environment EC2 deployment (dev=t3.micro, prod=t2.xlarge)"
+            },
+            {
+                number: 7,
+                title: "Security & Secrets Management",
+                icon: "🔐",
+                topics: [
+                    "Sensitive Variables",
+                    "HashiCorp Vault Integration",
+                    "AWS Secrets Manager",
+                    "Environment Variables",
+                    "Encryption"
+                ],
+                description: "Secure your infrastructure with proper secrets management. Learn to integrate Terraform with HashiCorp Vault and other secret management systems.",
+                keyPoints: [
+                    "Why hardcoded secrets are dangerous",
+                    "Using sensitive attribute for variables",
+                    "HashiCorp Vault setup and integration",
+                    "AppRole authentication for Terraform",
+                    "Reading secrets from Vault at runtime",
+                    "Remote state encryption"
+                ],
+                project: "Deploy EC2 with secrets from Vault"
+            },
+            {
+                number: 8,
+                title: "Migration & Drift Detection",
+                icon: "🔍",
+                topics: [
+                    "Importing Resources",
+                    "State Migration",
+                    "Drift Detection",
+                    "terraform refresh",
+                    "Migration Strategies"
+                ],
+                description: "Learn advanced state management techniques. Import existing infrastructure, detect configuration drift, and safely migrate resources between states.",
+                keyPoints: [
+                    "Importing existing AWS resources into Terraform",
+                    "Detecting manual changes (drift)",
+                    "State migration strategies",
+                    "terraform state mv/rm commands",
+                    "Migrating between backends",
+                    "Zero-downtime migrations",
+                    "Remediation strategies for drift"
+                ],
+                project: "Import existing infrastructure and detect drift"
+            }
+        ];
+
+        // Render day cards
+        function renderDays() {
+            const grid = document.getElementById('daysGrid');
+            grid.innerHTML = days.map(day => `
+                <div class="day-card" onclick="openModal(${day.number})">
+                    <span class="day-icon">${day.icon}</span>
+                    <div class="day-number">Day ${day.number}</div>
+                    <h2 class="day-title">${day.title}</h2>
+                    <ul class="day-topics">
+                        ${day.topics.slice(0, 3).map(topic => `<li>${topic}</li>`).join('')}
+                        ${day.topics.length > 3 ? `<li>+ ${day.topics.length - 3} more...</li>` : ''}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        // Open modal with day details
+        function openModal(dayNumber) {
+            const day = days.find(d => d.number === dayNumber);
+            const modal = document.getElementById('modal');
+            const modalBody = document.getElementById('modalBody');
+
+            modalBody.innerHTML = `
+                <div class="modal-header">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">${day.icon}</div>
+                    <h2 class="modal-title">Day ${day.number}: ${day.title}</h2>
+                    <p class="modal-description">${day.description}</p>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>📚 Topics Covered</h3>
+                    <ul>
+                        ${day.topics.map(topic => `<li>${topic}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>🎯 Key Learning Points</h3>
+                    <ul>
+                        ${day.keyPoints.map(point => `<li>${point}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="modal-section">
+                    <h3>🚀 Hands-On Project</h3>
+                    <p style="padding-left: 2rem; font-size: 1.1rem; color: var(--accent);">
+                        ${day.project}
+                    </p>
+                </div>
+                
+                <div class="code-block">
+                    <code># Navigate to the day folder
+cd terraform-zero-to-hero/Day-${day.number}
+
+# View the content
+ls
+
+# Follow the hands-on guides!
+                    </code>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        // Close modal
+        document.querySelector('.close').onclick = function () {
+            document.getElementById('modal').classList.remove('active');
+        };
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.classList.remove('active');
+            }
+        };
+
+        // Initialize
+        renderDays();
+    </script>
+</body>
+
+</html>
